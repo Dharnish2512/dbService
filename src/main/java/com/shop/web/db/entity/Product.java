@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.math.BigDecimal;
 
 @Document(collection = "product")
@@ -20,5 +19,7 @@ public class Product {
     private String category;
     private String description;
     private BigDecimal price;
+    private BigDecimal discountedPrice;
+    private boolean isAvailable;
 
 }

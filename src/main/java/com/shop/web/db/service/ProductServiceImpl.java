@@ -13,12 +13,15 @@ import com.mongodb.client.AggregateIterable;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService{
+public class ProductServiceImpl implements ProductService {
 
+    @Autowired
+    ExcelToObjectService excelToObjectService;
 
     @Autowired
     ProductRepository productRepository;
@@ -39,8 +42,15 @@ public class ProductServiceImpl implements ProductService{
 
     public Product updateProduct(Product product) {
         Product existingProduct = productRepository.findById(product.getId()).get();
-        BeanUtils.copyProperties(product,existingProduct);
+        BeanUtils.copyProperties(product, existingProduct);
         return productRepository.save(existingProduct);
+    }
+
+    @Override
+    public List<Product> parseExcelFile(InputStream inputStream) {
+        List<Product> products = excelToObjectService.parseExcelFile(inputStream);
+        productRepository.saveAll(products);
+        return products;
     }
 
     public List<Product> saveProduct(final List<Product> products) {
@@ -57,7 +67,7 @@ public class ProductServiceImpl implements ProductService{
                         .append("text",
                                 new Document("query", query)
                                         .append("path", "name")))));
-        result.forEach(document -> products.add(mongoConverter.read(Product.class,document)));
+        result.forEach(document -> products.add(mongoConverter.read(Product.class, document)));
         return products;
     }
 }

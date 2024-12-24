@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -40,5 +41,15 @@ public class ProductController {
     @GetMapping("/product/{query}")
     public ResponseEntity<List<Product>> getProductWithQuery(@PathVariable String query) {
         return new ResponseEntity<>(productService.getProductByText(query), HttpStatus.OK);
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<List<Product>> uploadExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            List<Product> products = productService.parseExcelFile(file.getInputStream());
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
