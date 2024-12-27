@@ -3,6 +3,7 @@ package com.shop.web.db.controller;
 import com.shop.web.db.entity.Product;
 import com.shop.web.db.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,14 +22,19 @@ public class ProductController {
         return productService.saveProduct(products);
     }
 
+    @GetMapping("/product/get")
+    public Product getProduct(@RequestParam String productId) {
+        return productService.getProductList(productId);
+    }
+
     @PutMapping("/product/update")
     public Product addProduct(@RequestBody Product product) {
         return productService.updateProduct(product);
     }
 
     @GetMapping("/product/getAll")
-    public List<Product> getAllProducts() {
-        return productService.getProductList();
+    public PageImpl<Product> getAllProducts(@RequestParam int page, @RequestParam int size) {
+        return productService.getProductList(page,size);
     }
 
     @DeleteMapping("/product/{productId}")
@@ -38,9 +44,11 @@ public class ProductController {
                 "Product Removed!!", HttpStatus.OK);
     }
 
-    @GetMapping("/product/{query}")
-    public ResponseEntity<List<Product>> getProductWithQuery(@PathVariable String query) {
-        return new ResponseEntity<>(productService.getProductByText(query), HttpStatus.OK);
+    @GetMapping("/product")
+    public ResponseEntity<PageImpl<Product>> getProductWithQuery(@RequestParam String query,
+                                                                 @RequestParam int page,
+                                                                 @RequestParam int size) {
+        return new ResponseEntity<>(productService.getProductByText(query,page,size), HttpStatus.OK);
     }
 
     @PostMapping("/upload")

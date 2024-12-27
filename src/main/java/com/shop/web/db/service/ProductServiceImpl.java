@@ -1,20 +1,17 @@
 package com.shop.web.db.service;
 
-import com.mongodb.client.MongoClient;
 import com.shop.web.db.entity.Product;
 import com.shop.web.db.repository.ProductRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.bson.Document;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.AggregateIterable;
-import org.springframework.data.mongodb.core.convert.MongoConverter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,14 +23,10 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     ProductRepository productRepository;
 
-    @Autowired
-    MongoConverter mongoConverter;
-
-    @Autowired
-    MongoClient mongoClient;
-
-    public List<Product> getProductList() {
-        return productRepository.findAll();
+    public PageImpl<Product> getProductList(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findAll(pageable);
+        return new PageImpl<>(products.getContent(),products.getPageable(),products.getTotalElements());
     }
 
     public void deleteProduct(String productId) {
@@ -53,21 +46,19 @@ public class ProductServiceImpl implements ProductService {
         return products;
     }
 
+    @Override
+    public Product getProductList(String productId) {
+        return productRepository.findById(productId).get();
+    }
+
     public List<Product> saveProduct(final List<Product> products) {
         return productRepository.saveAll(products);
     }
 
     @Override
-    public List<Product> getProductByText(String query) {
-        List<Product> products = new ArrayList<>();
-        MongoDatabase database = mongoClient.getDatabase("shop-db");
-        MongoCollection<Document> collection = database.getCollection("product");
-        AggregateIterable<Document> result = collection.aggregate(List.of(new Document("$search",
-                new Document("index", "productIdIndex")
-                        .append("text",
-                                new Document("query", query)
-                                        .append("path", "name")))));
-        result.forEach(document -> products.add(mongoConverter.read(Product.class, document)));
-        return products;
+    public PageImpl<Product> getProductByText(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        String regex = ".*" + query + ".*";
+        return productRepository.findByNameContaining(regex, pageable);
     }
 }
