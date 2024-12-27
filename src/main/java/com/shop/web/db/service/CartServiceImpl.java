@@ -1,6 +1,7 @@
 package com.shop.web.db.service;
 
 import com.shop.web.db.entity.Cart;
+import com.shop.web.db.exception.CartException;
 import com.shop.web.db.model.CartRequest;
 import com.shop.web.db.repository.CartRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -21,22 +22,27 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Cart addProductInCart(CartRequest cartRequest) {
-        Cart cart = new Cart();
-        Optional<Cart> cartOptional = cartRepository.findById(cartRequest.getUserId());
-        if (cartOptional.isPresent()) {
-            boolean itemExists = cartOptional.get().getCartItems().stream()
-                    .anyMatch(item -> item.getProductId().equals(cartRequest.getCartItem().getProductId()));
+        try {
+            Cart cart;
+            Optional<Cart> cartOptional = cartRepository.findById(cartRequest.getUserId());
+            if (cartOptional.isPresent()) {
+                boolean itemExists = cartOptional.get().getCartItems().stream()
+                        .anyMatch(item -> item.getProductId().equals(cartRequest.getCartItem().getProductId()));
 
-            if (!itemExists) {
-                cartOptional.get().getCartItems().add(cartRequest.getCartItem());
-                cart = cartRepository.save(cartOptional.get());
+                if (!itemExists) {
+                    cartOptional.get().getCartItems().add(cartRequest.getCartItem());
+                    cart = cartRepository.save(cartOptional.get());
+                } else {
+                    log.info("Item is already in the cart");
+                    throw new CartException("Item is already in the cart");
+                }
             } else {
-                log.info("Item is already in the cart");
+                cart = cartRepository.save(CartRequest.convertToCart(cartRequest));
             }
-        } else {
-            cart = cartRepository.save(CartRequest.convertToCart(cartRequest));
+            return cart;
+        } catch (Exception e) {
+            throw new CartException(e.getMessage());
         }
-        return cart;
     }
 
     @Override

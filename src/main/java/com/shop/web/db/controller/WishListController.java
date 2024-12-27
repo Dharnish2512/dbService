@@ -21,7 +21,7 @@ public class WishListController {
     }
 
     @PostMapping("/wishlist/add")
-    public ResponseEntity<WishList> addFavoriteInCart(@RequestParam String userId,
+    public ResponseEntity<WishList> addFavorite(@RequestParam String userId,
                                                       @RequestParam String productId) {
         WishList wishList = wishListService.addProduct(userId, productId);
         return new ResponseEntity<>(wishList, HttpStatus.OK);
@@ -37,6 +37,6 @@ public class WishListController {
     @DeleteMapping("/wishlist/clear")
     public ResponseEntity<String> clearFavorites(@RequestParam String userId) {
         wishListService.clearWishList(userId);
-        return new ResponseEntity<>("Cart Cleared", HttpStatus.OK);
+        return new ResponseEntity<>("Wishlist Cleared", HttpStatus.OK);
     }
 }
